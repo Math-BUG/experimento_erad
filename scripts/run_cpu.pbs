@@ -1,0 +1,68 @@
+#!/bin/bash
+
+#PBS -N erad_cpu
+#PBS -l nodes=c24:ppn=24,mem=128gb,walltime=96:00:00
+#PBS -q high_mem
+#PBS -j oe
+#PBS -V
+
+
+set -euo pipefail
+
+PROJECT_DIR="${PBS_O_WORKDIR:-$(pwd)}"
+cd "$PROJECT_DIR"
+
+if [ -f /etc/profile.d/modules.sh ]; then
+  source /etc/profile.d/modules.sh
+fi
+
+if command -v module >/dev/null 2>&1; then
+  module purge || true
+  module load python/3.11.2 || true
+fi
+
+if [ -n "${VENV_PATH:-}" ] && [ -d "$VENV_PATH" ]; then
+  source "$VENV_PATH/bin/activate"
+elif [ -d ".venv" ]; then
+  source .venv/bin/activate
+elif [ -d "$HOME/venvs/pipeline_meshi" ]; then
+  source "$HOME/venvs/pipeline_meshi/bin/activate"
+fi
+
+NCPUS="${PBS_NP:-12}"
+
+export OMP_NUM_THREADS="$NCPUS"
+export OPENBLAS_NUM_THREADS="$NCPUS"
+export MKL_NUM_THREADS="$NCPUS"
+export NUMEXPR_NUM_THREADS="$NCPUS"
+export BLIS_NUM_THREADS="$NCPUS"
+
+DATA_PATH="${DATA_PATH:-$PROJECT_DIR/data/train_test_network.parquet}"
+OUTPUT_DIR="${OUTPUT_DIR:-$HOME/dados/erad_experiment_results}"
+RUN_ID="${RUN_ID:-cpu_${PBS_JOBID:-manual}}"
+
+ARGS=(
+  run_experiment.py
+  --backend cpu
+  --data-path "$DATA_PATH"
+  --output-dir "$OUTPUT_DIR"
+  --run-id "$RUN_ID"
+  --n-jobs "$NCPUS"
+)
+
+if [ -n "${N_SAMPLES:-}" ]; then
+  ARGS+=(--n-samples "$N_SAMPLES")
+fi
+
+echo "==== ERAD CPU START ===="
+date
+echo "PROJECT_DIR=$PROJECT_DIR"
+echo "DATA_PATH=$DATA_PATH"
+echo "OUTPUT_DIR=$OUTPUT_DIR"
+echo "RUN_ID=$RUN_ID"
+python --version
+
+python "${ARGS[@]}"
+
+echo "==== ERAD CPU END ===="
+date

@@ -1,0 +1,15 @@
+# GPU dependencies for the ERAD backend on CUDA 12.x.
+#
+# Keep requirements.txt as the CPU/base environment. Install this file only on
+# the GPU cluster after loading the CUDA 12 module used by the Slurm job.
+#
+# RAPIDS wheels are served through NVIDIA's Python package index.
+--extra-index-url https://pypi.nvidia.com
+
+-r requirements.txt
+
+# RAPIDS/cuDF/cuML packages for CUDA 12.x. Keep cuDF and cuML aligned on the
+# same RAPIDS release. 26.2.0 is available for both packages on the GPU cluster.
+cudf-cu12==26.2.0
+cuml-cu12==26.2.0
+cupy-cuda12x

@@ -1,0 +1,67 @@
+#!/bin/bash
+
+#PBS -N check_node_specs
+#PBS -l nodes=c21:ppn=1,mem=1gb,walltime=00:05:00
+#PBS -j oe
+#PBS -V
+
+set -euo pipefail
+
+echo "==== PBS JOB ===="
+echo "date: $(date)"
+echo "PBS_JOBID: ${PBS_JOBID:-unset}"
+echo "PBS_O_WORKDIR: ${PBS_O_WORKDIR:-unset}"
+echo "PBS_NODEFILE: ${PBS_NODEFILE:-unset}"
+echo
+
+echo "==== HOST ===="
+hostname
+hostname -f || true
+echo
+
+echo "==== PBS NODEFILE CONTENT ===="
+if [ -n "${PBS_NODEFILE:-}" ] && [ -f "$PBS_NODEFILE" ]; then
+  cat "$PBS_NODEFILE"
+else
+  echo "PBS_NODEFILE not available"
+fi
+echo
+
+echo "==== CPU: lscpu ===="
+lscpu || true
+echo
+
+echo "==== CPU MODEL ===="
+grep -m 1 "model name" /proc/cpuinfo || true
+echo "physical CPUs: $(grep 'physical id' /proc/cpuinfo | sort -u | wc -l || true)"
+echo "logical CPUs: $(grep -c '^processor' /proc/cpuinfo || true)"
+echo
+
+echo "==== MEMORY ===="
+free -h || true
+grep -E "MemTotal|MemFree|MemAvailable|SwapTotal|SwapFree" /proc/meminfo || true
+echo
+
+echo "==== DISK ===="
+df -h "$HOME" "${PBS_O_WORKDIR:-$PWD}" 2>/dev/null || df -h
+echo
+
+echo "==== MODULES ===="
+if [ -f /etc/profile.d/modules.sh ]; then
+  source /etc/profile.d/modules.sh
+fi
+if command -v module >/dev/null 2>&1; then
+  module list || true
+  module avail python 2>&1 || true
+else
+  echo "module command not available"
+fi
+echo
+
+echo "==== PYTHON ===="
+which python || true
+python --version || true
+echo
+
+echo "==== DONE ===="
+date
