@@ -127,6 +127,7 @@ def run_experiment(args: argparse.Namespace) -> Path:
             gpu_mode=args.gpu_mode,
             gpu_max_categories_per_col=args.gpu_max_categories_per_col,
         )
+    _replace_last_backend(timer.rows, preprocessing_backend["implementation_backend"], preprocessing_backend["observacoes"])
     backend_report.append(
         _backend_row(
             args,
