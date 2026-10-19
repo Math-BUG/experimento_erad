@@ -31,3 +31,5 @@ Investigar o tempo de execução de um pipeline de IDS para tráfego IoT em ambi
 - [Generalização e avaliação de IDS em maior escala](https://github.com/Math-BUG/ids_generalization_pipeline)
 
 Os três repositórios têm objetivos experimentais diferentes e suas métricas não devem ser misturadas.
+
+- [SIA 2026 — painel e resumo aprovado](https://github.com/Math-BUG/sia-2026-iot-ids)
